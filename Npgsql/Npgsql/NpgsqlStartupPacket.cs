@@ -57,7 +57,9 @@ namespace Npgsql
             parameters.Add("DateStyle", "ISO");
             parameters.Add("client_encoding", "UTF8");
             parameters.Add("extra_float_digits", "2");
+#if !REDSHIFT
             parameters.Add("lc_monetary", "C");
+#endif
 
             if (! string.IsNullOrEmpty(settings.ApplicationName))
             {

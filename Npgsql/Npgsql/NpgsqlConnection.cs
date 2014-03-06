@@ -36,7 +36,6 @@ using System.Resources;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Transactions;
-using Mono.Security.Protocol.Tls;
 using IsolationLevel = System.Data.IsolationLevel;
 
 #if WITHDESIGN
@@ -97,29 +96,33 @@ namespace Npgsql
 
         internal ProvideClientCertificatesCallback ProvideClientCertificatesCallbackDelegate;
 
+        public event RemoteCertificateValidationCallback RemoteCertificateValidationCallback;
+
+        internal RemoteCertificateValidationCallback RemoteCertificateValidationCallbackDelegate;
+
         /// <summary>
         /// Mono.Security.Protocol.Tls.CertificateSelectionCallback delegate.
         /// </summary>
-        [Obsolete("CertificateSelectionCallback, CertificateValidationCallback and PrivateKeySelectionCallback have been replaced with ValidateRemoteCertificateCallback.")]
-        public event CertificateSelectionCallback CertificateSelectionCallback;
-
-        internal CertificateSelectionCallback CertificateSelectionCallbackDelegate;
+//        [Obsolete("CertificateSelectionCallback, CertificateValidationCallback and PrivateKeySelectionCallback have been replaced with ValidateRemoteCertificateCallback.")]
+//        public event CertificateSelectionCallback CertificateSelectionCallback;
+//
+//        internal CertificateSelectionCallback CertificateSelectionCallbackDelegate;
 
         /// <summary>
         /// Mono.Security.Protocol.Tls.CertificateValidationCallback delegate.
         /// </summary>
-        [Obsolete("CertificateSelectionCallback, CertificateValidationCallback and PrivateKeySelectionCallback have been replaced with ValidateRemoteCertificateCallback.")]
-        public event CertificateValidationCallback CertificateValidationCallback;
-
-        internal CertificateValidationCallback CertificateValidationCallbackDelegate;
+//        [Obsolete("CertificateSelectionCallback, CertificateValidationCallback and PrivateKeySelectionCallback have been replaced with ValidateRemoteCertificateCallback.")]
+//        public event CertificateValidationCallback CertificateValidationCallback;
+//
+//        internal CertificateValidationCallback CertificateValidationCallbackDelegate;
 
         /// <summary>
         /// Mono.Security.Protocol.Tls.PrivateKeySelectionCallback delegate.
         /// </summary>
         [Obsolete("CertificateSelectionCallback, CertificateValidationCallback and PrivateKeySelectionCallback have been replaced with ValidateRemoteCertificateCallback.")]
-        public event PrivateKeySelectionCallback PrivateKeySelectionCallback;
+//        public event PrivateKeySelectionCallback PrivateKeySelectionCallback;
 
-        internal PrivateKeySelectionCallback PrivateKeySelectionCallbackDelegate;
+//        internal PrivateKeySelectionCallback PrivateKeySelectionCallbackDelegate;
 
         /// <summary>
         /// Called to validate server's certificate during SSL handshake
@@ -163,11 +166,12 @@ namespace Npgsql
             NoticeDelegate = new NoticeEventHandler(OnNotice);
             NotificationDelegate = new NotificationEventHandler(OnNotification);
 
+            RemoteCertificateValidationCallback = DefaultRemoteCertificateValidationCallback;
             ProvideClientCertificatesCallbackDelegate = new ProvideClientCertificatesCallback(DefaultProvideClientCertificatesCallback);
-            CertificateValidationCallbackDelegate = new CertificateValidationCallback(DefaultCertificateValidationCallback);
-            CertificateSelectionCallbackDelegate = new CertificateSelectionCallback(DefaultCertificateSelectionCallback);
-            PrivateKeySelectionCallbackDelegate = new PrivateKeySelectionCallback(DefaultPrivateKeySelectionCallback);
-            ValidateRemoteCertificateCallbackDelegate = new ValidateRemoteCertificateCallback(DefaultValidateRemoteCertificateCallback);
+//            CertificateValidationCallbackDelegate = new CertificateValidationCallback(DefaultCertificateValidationCallback);
+//            CertificateSelectionCallbackDelegate = new CertificateSelectionCallback(DefaultCertificateSelectionCallback);
+//            PrivateKeySelectionCallbackDelegate = new PrivateKeySelectionCallback(DefaultPrivateKeySelectionCallback);
+//            ValidateRemoteCertificateCallbackDelegate = new ValidateRemoteCertificateCallback(DefaultValidateRemoteCertificateCallback);
 
             // Fix authentication problems. See https://bugzilla.novell.com/show_bug.cgi?id=MONO77559 and
             // http://pgfoundry.org/forum/message.php?msg_id=1002377 for more info.
@@ -635,11 +639,12 @@ namespace Npgsql
             {
                 connector = new NpgsqlConnector(this);
 
-                connector.ProvideClientCertificatesCallback += ProvideClientCertificatesCallbackDelegate;
-                connector.CertificateSelectionCallback += CertificateSelectionCallbackDelegate;
-                connector.CertificateValidationCallback += CertificateValidationCallbackDelegate;
-                connector.PrivateKeySelectionCallback += PrivateKeySelectionCallbackDelegate;
-                connector.ValidateRemoteCertificateCallback += ValidateRemoteCertificateCallbackDelegate;
+                connector.RemoteCertificateValidationCallback += RemoteCertificateValidationCallback;
+//                connector.ProvideClientCertificatesCallback += ProvideClientCertificatesCallbackDelegate;
+//                connector.CertificateSelectionCallback += CertificateSelectionCallbackDelegate;
+//                connector.CertificateValidationCallback += CertificateValidationCallbackDelegate;
+//                connector.PrivateKeySelectionCallback += PrivateKeySelectionCallbackDelegate;
+//                connector.ValidateRemoteCertificateCallback += ValidateRemoteCertificateCallbackDelegate;
 
                 connector.Open();
             }
@@ -741,11 +746,12 @@ namespace Npgsql
             }
             else
             {
-                Connector.ProvideClientCertificatesCallback -= ProvideClientCertificatesCallbackDelegate;
-                Connector.CertificateSelectionCallback -= CertificateSelectionCallbackDelegate;
-                Connector.CertificateValidationCallback -= CertificateValidationCallbackDelegate;
-                Connector.PrivateKeySelectionCallback -= PrivateKeySelectionCallbackDelegate;
-                Connector.ValidateRemoteCertificateCallback -= ValidateRemoteCertificateCallbackDelegate;
+                Connector.RemoteCertificateValidationCallback -= RemoteCertificateValidationCallbackDelegate;
+//                Connector.ProvideClientCertificatesCallback -= ProvideClientCertificatesCallbackDelegate;
+//                Connector.CertificateSelectionCallback -= CertificateSelectionCallbackDelegate;
+//                Connector.CertificateValidationCallback -= CertificateValidationCallbackDelegate;
+//                Connector.PrivateKeySelectionCallback -= PrivateKeySelectionCallbackDelegate;
+//                Connector.ValidateRemoteCertificateCallback -= ValidateRemoteCertificateCallbackDelegate;
 
                 if (Connector.Transaction != null)
                 {
@@ -959,49 +965,49 @@ namespace Npgsql
         /// <summary>
         /// Default SSL CertificateSelectionCallback implementation.
         /// </summary>
-        internal X509Certificate DefaultCertificateSelectionCallback(X509CertificateCollection clientCertificates,
-                                                                     X509Certificate serverCertificate, string targetHost,
-                                                                     X509CertificateCollection serverRequestedCertificates)
-        {
-            if (CertificateSelectionCallback != null)
-            {
-                return CertificateSelectionCallback(clientCertificates, serverCertificate, targetHost, serverRequestedCertificates);
-            }
-            else
-            {
-                return null;
-            }
-        }
+//        internal X509Certificate DefaultCertificateSelectionCallback(X509CertificateCollection clientCertificates,
+//                                                                     X509Certificate serverCertificate, string targetHost,
+//                                                                     X509CertificateCollection serverRequestedCertificates)
+//        {
+//            if (CertificateSelectionCallback != null)
+//            {
+//                return CertificateSelectionCallback(clientCertificates, serverCertificate, targetHost, serverRequestedCertificates);
+//            }
+//            else
+//            {
+//                return null;
+//            }
+//        }
 
         /// <summary>
         /// Default SSL CertificateValidationCallback implementation.
         /// </summary>
-        internal bool DefaultCertificateValidationCallback(X509Certificate certificate, int[] certificateErrors)
-        {
-            if (CertificateValidationCallback != null)
-            {
-                return CertificateValidationCallback(certificate, certificateErrors);
-            }
-            else
-            {
-                return true;
-            }
-        }
+//        internal bool DefaultCertificateValidationCallback(X509Certificate certificate, int[] certificateErrors)
+//        {
+//            if (CertificateValidationCallback != null)
+//            {
+//                return CertificateValidationCallback(certificate, certificateErrors);
+//            }
+//            else
+//            {
+//                return true;
+//            }
+//        }
 
         /// <summary>
         /// Default SSL PrivateKeySelectionCallback implementation.
         /// </summary>
-        internal AsymmetricAlgorithm DefaultPrivateKeySelectionCallback(X509Certificate certificate, string targetHost)
-        {
-            if (PrivateKeySelectionCallback != null)
-            {
-                return PrivateKeySelectionCallback(certificate, targetHost);
-            }
-            else
-            {
-                return null;
-            }
-        }
+//        internal AsymmetricAlgorithm DefaultPrivateKeySelectionCallback(X509Certificate certificate, string targetHost)
+//        {
+//            if (PrivateKeySelectionCallback != null)
+//            {
+//                return PrivateKeySelectionCallback(certificate, targetHost);
+//            }
+//            else
+//            {
+//                return null;
+//            }
+//        }
 
         /// <summary>
         /// Default SSL ProvideClientCertificatesCallback implementation.
@@ -1012,6 +1018,18 @@ namespace Npgsql
             {
                 ProvideClientCertificatesCallback(certificates);
             }
+        }
+
+        /// <summary>
+        /// Default SSL ProvideClientCertificatesCallback implementation.
+        /// </summary>
+        internal bool DefaultRemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            if (RemoteCertificateValidationCallback != null)
+            {
+                return RemoteCertificateValidationCallback(sender, certificate, chain, sslPolicyErrors);
+            }
+            return false;
         }
 
         /// <summary>

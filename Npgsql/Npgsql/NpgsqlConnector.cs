@@ -36,7 +36,6 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
-using Mono.Security.Protocol.Tls;
 using NpgsqlTypes;
 using System.Text;
 
@@ -82,20 +81,21 @@ namespace Npgsql
         /// </summary>
         internal event ProvideClientCertificatesCallback ProvideClientCertificatesCallback;
 
+        internal event RemoteCertificateValidationCallback RemoteCertificateValidationCallback;
         /// <summary>
         /// Mono.Security.Protocol.Tls.CertificateSelectionCallback delegate.
         /// </summary>
-        internal event CertificateSelectionCallback CertificateSelectionCallback;
+//        internal event CertificateSelectionCallback CertificateSelectionCallback;
 
         /// <summary>
         /// Mono.Security.Protocol.Tls.CertificateValidationCallback delegate.
         /// </summary>
-        internal event CertificateValidationCallback CertificateValidationCallback;
+//        internal event CertificateValidationCallback CertificateValidationCallback;
 
         /// <summary>
         /// Mono.Security.Protocol.Tls.PrivateKeySelectionCallback delegate.
         /// </summary>
-        internal event PrivateKeySelectionCallback PrivateKeySelectionCallback;
+//        internal event PrivateKeySelectionCallback PrivateKeySelectionCallback;
 
         /// <summary>
         /// Called to validate server's certificate during SSL handshake
@@ -206,6 +206,11 @@ namespace Npgsql
             _state = NpgsqlClosedState.Instance;
             _mediator = new NpgsqlMediator();
             _NativeToBackendTypeConverterOptions = NativeToBackendTypeConverterOptions.Default.Clone(new NpgsqlBackendTypeMapping());
+#if REDSHIFT
+            _NativeToBackendTypeConverterOptions = NativeToBackendTypeConverterOptions.Redshift.Clone(new NpgsqlBackendTypeMapping());
+#else
+            _NativeToBackendTypeConverterOptions = NativeToBackendTypeConverterOptions.Default.Clone(new NpgsqlBackendTypeMapping());
+#endif
             _planIndex = 0;
             _portalIndex = 0;
             _notificationThreadStopCount = 1;
@@ -504,51 +509,67 @@ namespace Npgsql
         }
 
         /// <summary>
-        /// Default SSL CertificateSelectionCallback implementation.
+        /// Default SSL RemoteCertificateValidationCallback implementation.
         /// </summary>
-        internal X509Certificate DefaultCertificateSelectionCallback(X509CertificateCollection clientCertificates,
-                                                                     X509Certificate serverCertificate, string targetHost,
-                                                                     X509CertificateCollection serverRequestedCertificates)
+        internal bool DefaultRemoteCertificateValidationCallback(object sender, X509Certificate certificate, 
+                                                                 X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
-            if (CertificateSelectionCallback != null)
+            if (RemoteCertificateValidationCallback  != null)
             {
-                return CertificateSelectionCallback(clientCertificates, serverCertificate, targetHost, serverRequestedCertificates);
+                return RemoteCertificateValidationCallback(sender, certificate, chain, sslPolicyErrors);
             }
             else
             {
-                return null;
+                return false;
             }
         }
+
+        /// <summary>
+        /// Default SSL CertificateSelectionCallback implementation.
+        /// </summary>
+//        internal X509Certificate DefaultCertificateSelectionCallback(X509CertificateCollection clientCertificates,
+//                                                                     X509Certificate serverCertificate, string targetHost,
+//                                                                     X509CertificateCollection serverRequestedCertificates)
+//        {
+//            if (CertificateSelectionCallback != null)
+//            {
+//                return CertificateSelectionCallback(clientCertificates, serverCertificate, targetHost, serverRequestedCertificates);
+//            }
+//            else
+//            {
+//                return null;
+//            }
+//        }
 
         /// <summary>
         /// Default SSL CertificateValidationCallback implementation.
         /// </summary>
-        internal bool DefaultCertificateValidationCallback(X509Certificate certificate, int[] certificateErrors)
-        {
-            if (CertificateValidationCallback != null)
-            {
-                return CertificateValidationCallback(certificate, certificateErrors);
-            }
-            else
-            {
-                return true;
-            }
-        }
+//        internal bool DefaultCertificateValidationCallback(X509Certificate certificate, int[] certificateErrors)
+//        {
+//            if (CertificateValidationCallback != null)
+//            {
+//                return CertificateValidationCallback(certificate, certificateErrors);
+//            }
+//            else
+//            {
+//                return true;
+//            }
+//        }
 
         /// <summary>
         /// Default SSL PrivateKeySelectionCallback implementation.
         /// </summary>
-        internal AsymmetricAlgorithm DefaultPrivateKeySelectionCallback(X509Certificate certificate, string targetHost)
-        {
-            if (PrivateKeySelectionCallback != null)
-            {
-                return PrivateKeySelectionCallback(certificate, targetHost);
-            }
-            else
-            {
-                return null;
-            }
-        }
+//        internal AsymmetricAlgorithm DefaultPrivateKeySelectionCallback(X509Certificate certificate, string targetHost)
+//        {
+//            if (PrivateKeySelectionCallback != null)
+//            {
+//                return PrivateKeySelectionCallback(certificate, targetHost);
+//            }
+//            else
+//            {
+//                return null;
+//            }
+//        }
 
         /// <summary>
         /// Default SSL ProvideClientCertificatesCallback implementation.

@@ -211,7 +211,11 @@ namespace NpgsqlTypes
         {
             if (options == null)
             {
+#if REDSHIFT
+                options = NativeToBackendTypeConverterOptions.Redshift;
+#else
                 options = NativeToBackendTypeConverterOptions.Default;
+#endif
             }
 
             if (forExtendedQuery)

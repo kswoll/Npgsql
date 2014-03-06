@@ -368,12 +368,12 @@ namespace Npgsql
 
             if (Connector != null)
             {
-
-                Connector.ProvideClientCertificatesCallback += Connection.ProvideClientCertificatesCallbackDelegate;
-                Connector.CertificateSelectionCallback += Connection.CertificateSelectionCallbackDelegate;
-                Connector.CertificateValidationCallback += Connection.CertificateValidationCallbackDelegate;
-                Connector.PrivateKeySelectionCallback += Connection.PrivateKeySelectionCallbackDelegate;
-                Connector.ValidateRemoteCertificateCallback += Connection.ValidateRemoteCertificateCallbackDelegate;
+                Connector.RemoteCertificateValidationCallback += Connection.RemoteCertificateValidationCallbackDelegate;
+//                Connector.ProvideClientCertificatesCallback += Connection.ProvideClientCertificatesCallbackDelegate;
+//                Connector.CertificateSelectionCallback += Connection.CertificateSelectionCallbackDelegate;
+//                Connector.CertificateValidationCallback += Connection.CertificateValidationCallbackDelegate;
+//                Connector.PrivateKeySelectionCallback += Connection.PrivateKeySelectionCallbackDelegate;
+//                Connector.ValidateRemoteCertificateCallback += Connection.ValidateRemoteCertificateCallbackDelegate;
 
                 try
                 {
@@ -402,19 +402,21 @@ namespace Npgsql
                         {
                             NpgsqlConnector Spare = new NpgsqlConnector(Connection);
 
-                            Spare.ProvideClientCertificatesCallback += Connection.ProvideClientCertificatesCallbackDelegate;
-                            Spare.CertificateSelectionCallback += Connection.CertificateSelectionCallbackDelegate;
-                            Spare.CertificateValidationCallback += Connection.CertificateValidationCallbackDelegate;
-                            Spare.PrivateKeySelectionCallback += Connection.PrivateKeySelectionCallbackDelegate;
-                            Spare.ValidateRemoteCertificateCallback += Connection.ValidateRemoteCertificateCallbackDelegate;
+                            Spare.RemoteCertificateValidationCallback += Connection.RemoteCertificateValidationCallbackDelegate;
+//                            Spare.ProvideClientCertificatesCallback += Connection.ProvideClientCertificatesCallbackDelegate;
+//                            Spare.CertificateSelectionCallback += Connection.CertificateSelectionCallbackDelegate;
+//                            Spare.CertificateValidationCallback += Connection.CertificateValidationCallbackDelegate;
+//                            Spare.PrivateKeySelectionCallback += Connection.PrivateKeySelectionCallbackDelegate;
+//                            Spare.ValidateRemoteCertificateCallback += Connection.ValidateRemoteCertificateCallbackDelegate;
 
                             Spare.Open();
 
-                            Spare.ProvideClientCertificatesCallback -= Connection.ProvideClientCertificatesCallbackDelegate;
-                            Spare.CertificateSelectionCallback -= Connection.CertificateSelectionCallbackDelegate;
-                            Spare.CertificateValidationCallback -= Connection.CertificateValidationCallbackDelegate;
-                            Spare.PrivateKeySelectionCallback -= Connection.PrivateKeySelectionCallbackDelegate;
-                            Spare.ValidateRemoteCertificateCallback -= Connection.ValidateRemoteCertificateCallbackDelegate;
+                            Spare.RemoteCertificateValidationCallback -= Connection.RemoteCertificateValidationCallbackDelegate;
+//                            Spare.ProvideClientCertificatesCallback -= Connection.ProvideClientCertificatesCallbackDelegate;
+//                            Spare.CertificateSelectionCallback -= Connection.CertificateSelectionCallbackDelegate;
+//                            Spare.CertificateValidationCallback -= Connection.CertificateValidationCallbackDelegate;
+//                            Spare.PrivateKeySelectionCallback -= Connection.PrivateKeySelectionCallbackDelegate;
+//                            Spare.ValidateRemoteCertificateCallback -= Connection.ValidateRemoteCertificateCallbackDelegate;
 
                             Queue.Available.Enqueue(Spare);
                         }
@@ -460,11 +462,12 @@ namespace Npgsql
                 return; // Queue may be emptied by connection problems. See ClearPool below.
             }
 
-            Connector.ProvideClientCertificatesCallback -= Connection.ProvideClientCertificatesCallbackDelegate;
-            Connector.CertificateSelectionCallback -= Connection.CertificateSelectionCallbackDelegate;
-            Connector.CertificateValidationCallback -= Connection.CertificateValidationCallbackDelegate;
-            Connector.PrivateKeySelectionCallback -= Connection.PrivateKeySelectionCallbackDelegate;
-            Connector.ValidateRemoteCertificateCallback -= Connection.ValidateRemoteCertificateCallbackDelegate;
+            Connector.RemoteCertificateValidationCallback -= Connection.RemoteCertificateValidationCallbackDelegate;
+//            Connector.ProvideClientCertificatesCallback -= Connection.ProvideClientCertificatesCallbackDelegate;
+//            Connector.CertificateSelectionCallback -= Connection.CertificateSelectionCallbackDelegate;
+//            Connector.CertificateValidationCallback -= Connection.CertificateValidationCallbackDelegate;
+//            Connector.PrivateKeySelectionCallback -= Connection.PrivateKeySelectionCallbackDelegate;
+//            Connector.ValidateRemoteCertificateCallback -= Connection.ValidateRemoteCertificateCallbackDelegate;
 
             /*bool inQueue = false;
 

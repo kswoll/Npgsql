@@ -150,10 +150,7 @@ namespace Npgsql
 
         private static void UsingPostgresDBConnection(NpgsqlConnection connection, Action<NpgsqlConnection> action)
         {
-            var connectionBuilder = new NpgsqlConnectionStringBuilder(connection.ConnectionString)
-            {
-                Database = "postgres"
-            };
+            var connectionBuilder = new NpgsqlConnectionStringBuilder(connection.ConnectionString);
 
             using (var masterConnection = new NpgsqlConnection(connectionBuilder.ConnectionString))
             {
